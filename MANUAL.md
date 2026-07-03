@@ -9,6 +9,10 @@ Guía de todo lo que puedes hacer/modificar tú mismo, sin programar.
 
 **Doble clic en `game/index.html`.** Nada que instalar. Funciona sin internet.
 
+El juego se renderiza en **3D real** (motor Three.js incluido en el proyecto) con cámara
+inclinada estilo Octopath Traveler. Si algún equipo no soporta WebGL o prefieres la vista
+cenital 2D clásica: `index.html?render=2d`.
+
 | Tecla | Acción |
 |---|---|
 | WASD / flechas | Moverte (1 paso = 1 turno; el mundo solo avanza cuando tú actúas) |

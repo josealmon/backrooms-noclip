@@ -6,6 +6,22 @@
   const canvas = document.getElementById('game-canvas');
   Render.init(canvas);
 
+  // ---------- selección de renderizador: 3D (Three.js) por defecto, ?render=2d de respaldo ----------
+  const paramsPre = new URLSearchParams(location.search);
+  let use3D = paramsPre.get('render') !== '2d' && window.Render3D;
+  const glCanvas = document.getElementById('gl-canvas');
+  if (use3D) {
+    try {
+      Render3D.init(glCanvas, canvas);
+      glCanvas.style.display = 'block';
+      document.getElementById('game-wrap').classList.add('modo3d');
+    } catch (err) {
+      console.warn('WebGL no disponible; usando render 2D', err);
+      use3D = false;
+      glCanvas.style.display = 'none';
+    }
+  }
+
   // sprites PNG personalizados (game/assets/sprites/) si existen
   Sprites.tryOverrides([
     ...Sprites.list(),
@@ -123,28 +139,33 @@
       e.rx = lerp(e.rx, e.x, 0.2);
       e.ry = lerp(e.ry, e.y, 0.2);
     }
-    // cámara cenital centrada con límites del mapa
-    const TILE = Tiles.TILE;
-    const g = world.map.grid;
-    world.camera.x = Math.max(0, Math.min(g.w * TILE - canvas.width, p.rx * TILE - canvas.width / 2 + TILE / 2));
-    world.camera.y = Math.max(0, Math.min(g.h * TILE - canvas.height, p.ry * TILE - canvas.height / 2 + TILE / 2));
-    if (g.w * TILE < canvas.width) world.camera.x = (g.w * TILE - canvas.width) / 2;
-    if (g.h * TILE < canvas.height) world.camera.y = (g.h * TILE - canvas.height) / 2;
-
     try {
-      Render.frame(world, t);
-    Minimap.frame(world, t);
+      if (use3D) {
+        Render3D.frame(world, t);
+      } else {
+        // cámara cenital centrada con límites del mapa (solo 2D)
+        const TILE = Tiles.TILE;
+        const g = world.map.grid;
+        world.camera.x = Math.max(0, Math.min(g.w * TILE - canvas.width, p.rx * TILE - canvas.width / 2 + TILE / 2));
+        world.camera.y = Math.max(0, Math.min(g.h * TILE - canvas.height, p.ry * TILE - canvas.height / 2 + TILE / 2));
+        if (g.w * TILE < canvas.width) world.camera.x = (g.w * TILE - canvas.width) / 2;
+        if (g.h * TILE < canvas.height) world.camera.y = (g.h * TILE - canvas.height) / 2;
+        Render.frame(world, t);
+      }
+      Minimap.frame(world, t);
     } catch (err) {
       (window.__renderErrors = window.__renderErrors || []).push(String(err && err.stack || err).slice(0, 300));
       if (window.__renderErrors.length > 8) window.__renderErrors.length = 8;
     }
 
-    // destello rojo al recibir daño
-    const dt = t - world.ui.flashT;
-    if (dt < 220) {
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = `rgba(160,20,20,${0.35 * (1 - dt / 220)})`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // destello rojo al recibir daño (en 3D lo dibuja su overlay)
+    if (!use3D) {
+      const dt = t - world.ui.flashT;
+      if (dt < 220) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = `rgba(160,20,20,${0.35 * (1 - dt / 220)})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
     }
   }
   requestAnimationFrame(loop);

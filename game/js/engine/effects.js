@@ -42,13 +42,14 @@
     return [(Math.random() * 2 - 1) * shake.mag * k, (Math.random() * 2 - 1) * shake.mag * k];
   }
 
-  function draw(ctx, camX, camY, t, TILE) {
+  // proj opcional: función (wx, wy) => [sx, sy] para el render 3D
+  function draw(ctx, camX, camY, t, TILE, proj) {
     list = list.filter((e) => t - e.t0 < e.dur);
+    const P = proj || ((wx, wy) => [wx * TILE - camX + TILE / 2, wy * TILE - camY + TILE / 2]);
     for (const e of list) {
       // el timestamp del rAF puede ir ligeramente por detrás de performance.now()
       const k = Math.min(1, Math.max(0, (t - e.t0) / e.dur));
-      const sx = e.wx * TILE - camX + TILE / 2;
-      const sy = e.wy * TILE - camY + TILE / 2;
+      const [sx, sy] = P(e.wx, e.wy);
       ctx.save();
       if (e.type === 'num') {
         ctx.globalAlpha = 1 - k * k;
@@ -74,13 +75,13 @@
         ctx.stroke();
       } else if (e.type === 'proy') {
         // hoja metálica girando hacia el objetivo, con estela
-        const px = (e.x0 + (e.x1 - e.x0) * k) * TILE - camX + TILE / 2;
-        const py = (e.y0 + (e.y1 - e.y0) * k) * TILE - camY + TILE / 2;
-        const ang = Math.atan2(e.y1 - e.y0, e.x1 - e.x0) + k * 9;
+        const [px, py] = P(e.x0 + (e.x1 - e.x0) * k, e.y0 + (e.y1 - e.y0) * k);
+        const [qx, qy] = P(e.x0 + (e.x1 - e.x0) * Math.max(0, k - 0.12), e.y0 + (e.y1 - e.y0) * Math.max(0, k - 0.12));
+        const ang = Math.atan2(py - qy, px - qx) + k * 9;
         ctx.globalAlpha = 0.35;
         ctx.strokeStyle = e.color;
         ctx.beginPath();
-        ctx.moveTo(px - Math.cos(ang) * 16, py - Math.sin(ang) * 16);
+        ctx.moveTo(qx, qy);
         ctx.lineTo(px, py);
         ctx.stroke();
         ctx.globalAlpha = 1;

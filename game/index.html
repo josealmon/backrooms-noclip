@@ -63,6 +63,7 @@
   <!-- Juego -->
   <div id="screen-game" style="display:none">
     <div id="game-wrap">
+      <canvas id="gl-canvas" width="960" height="600" style="display:none"></canvas>
       <canvas id="game-canvas" width="960" height="600"></canvas>
       <div id="hud-top">
         <span id="hud-level"></span>
@@ -170,6 +171,8 @@
 <script src="js/systems/entities.js"></script>
 <script src="js/systems/rules.js"></script>
 <script src="js/engine/render.js"></script>
+<script src="js/lib/three.min.js"></script>
+<script src="js/engine/render3d.js"></script>
 <script src="js/systems/game.js"></script>
 <script src="js/ui/ui.js"></script>
 <script src="js/ui/minimap.js"></script>

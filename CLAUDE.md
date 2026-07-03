@@ -47,6 +47,13 @@ data.js → engine/rng.js → mapgen/mapgen.js → engine/tiles.js → engine/sp
 → `game/assets/sounds/niveles/`). `sfx.js` sintetiza el resto con WebAudio (overrides en
 `game/assets/sounds/`, tecla M silencia).
 
+**Render 3D (v9, por defecto)**: `lib/three.min.js` (Three.js r147 UMD, VENDORIZADO local — única
+dependencia del proyecto, aprobada por el usuario) + `engine/render3d.js` (escena por nivel con
+texturas CanvasTexture reutilizando tiles/sprites/render.js→exitToCanvas; cámara Octopath ~37°,
+PointLight con sombras + FogExp2; billboards). `?render=2d` usa el Canvas clásico (render.js) como
+respaldo íntegro. Selftests y capturas de lógica: SIEMPRE `?render=2d&nofx=1`. Capturas 3D en
+headless: `--use-angle=swiftshader` (lento). Cargar three.min.js y render3d.js tras render.js.
+
 (Todos existen y están committeados. v3: render cenital con paredes finas autotile en `tiles.js`/`render.js`,
 pixel-art data-driven en `sprites.js` con override PNG desde `game/assets/sprites/`, efectos de combate
 en `effects.js`, props/contenedores registrables en `mapgen.js`/`game.js`.)

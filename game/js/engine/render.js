@@ -686,5 +686,23 @@
     }
   }
 
-  window.Render = { init, frame, TILE: 48, _drawEntity: drawEntity };
+  // ---------- exportadores a canvas (texturas para el render 3D) ----------
+  function toCanvas(w, h, fn) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const viejo = ctx;
+    ctx = c.getContext('2d');
+    fn();
+    ctx = viejo;
+    return c;
+  }
+
+  window.Render = {
+    init, frame, TILE: 48,
+    _drawEntity: drawEntity,
+    exitStyle,
+    exitToCanvas: (def) => toCanvas(48, 72, () => drawExit({ def }, 0, 20, 500, false)),
+    itemToCanvas: (id, objects) => toCanvas(48, 52, () => drawItem({ id }, 0, 2, 350, objects)),
+    propToCanvas: (id) => toCanvas(48, 72, () => Sprites.drawProp(ctx, id, 24, 46, 400, null)),
+  };
 })();
