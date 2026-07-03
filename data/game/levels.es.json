@@ -33,7 +33,7 @@
   "peligro": 1,
   "bioma": "garaje",
   "tam": [56, 56],
-  "paleta": { "suelo": "#5a5a5e", "pared": "#7a7a80", "detalle": "#3f3f44", "luz": "#d8e4f0", "fondo": "#08080a" },
+  "paleta": { "suelo": "#3e3e44", "pared": "#8a8a96", "detalle": "#2c2c32", "luz": "#d8e4f0", "fondo": "#08080a" },
   "vision": 8,
   "oscuridad": 0.3,
   "descripcion": "Un aparcamiento interminable de pilares de hormigón y luces colgantes. Charcos de agua de almendras se evaporan en una niebla espesa. Aquí hay recursos, y por eso también hay cosas que esperan.",
