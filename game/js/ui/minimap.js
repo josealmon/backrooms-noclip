@@ -27,13 +27,7 @@
         ctx.fillRect(ox + x * S, oy + y * S, S, S);
       }
 
-    // salidas conocidas
-    for (const ex of world.map.exits) {
-      const idx = ex.y * g.w + ex.x;
-      if (!world.explored[idx]) continue;
-      ctx.fillStyle = ex.def.tipo === 'escape' ? '#6ae86a' : '#e8c95a';
-      ctx.fillRect(ox + ex.x * S - 1, oy + ex.y * S - 1, S + 2, S + 2);
-    }
+    // (las salidas NO se muestran: hay que encontrarlas explorando)
 
     // entidades (solo con el detector)
     if (world.hasItem && world.hasItem('detector')) {

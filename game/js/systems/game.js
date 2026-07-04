@@ -392,8 +392,10 @@
     world.explored = nExp;
     world.light = new Float32Array(W * H);
     world.mapaVersion = (world.mapaVersion || 0) + 1;
+    world._shift3d = { x: shiftX, z: shiftY }; // el render 3D desplaza su cámara sin salto
     recomputeFov();
     recomputeDmap();
+    if (window.Sfx) Sfx.play('crujido');
     world.log('Los pasillos se extienden. Este lugar no tiene fin.', 'event');
   }
 

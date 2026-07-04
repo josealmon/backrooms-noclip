@@ -17,10 +17,9 @@
       turno(world, rng) {
         if (world.turn > 0 && world.turn % 90 === 0 && rng.chance(0.5)) {
           if (world.remodelarZona()) {
-            world.log('Un estruendo lejano recorre el nivel: las Backrooms se reorganizan.', 'danger');
+            world.log('Un crujido lejano recorre el nivel: las Backrooms se reorganizan.', 'danger');
             world.sanity(-2);
-            if (window.Sfx) Sfx.play('derrumbe');
-            if (window.Effects) Effects.doShake(3, 750);
+            if (window.Sfx) Sfx.play('derrumbe'); // solo el sonido, sin sacudir la cámara
           }
         }
       },

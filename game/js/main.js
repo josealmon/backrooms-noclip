@@ -99,8 +99,6 @@
   const btnSndTitle = document.getElementById('btn-sound-menu-title');
   if (btnSndTitle) btnSndTitle.onclick = abrirSndMenu;
 
-  const autocam = { prev: null, n: 0 };
-
   document.addEventListener('keydown', (ev) => {
     if (ev.code === 'KeyM') {
       const m = Sfx.toggleMute();
@@ -121,25 +119,8 @@
         dx = rx; dy = ry;
       }
       Game.tryMove(dx, dy);
-      // AUTO-CÁMARA: 2 pasos seguidos en una dirección lateral/atrás → la cámara
-      // gira sola para poner esa dirección "arriba" (sin machacar Q/E)
-      if (use3D) {
-        const clave = sdx + ',' + sdy;
-        if (autocam.prev === clave) autocam.n++;
-        else { autocam.prev = clave; autocam.n = 1; }
-        if (autocam.n >= 2 && !(sdx === 0 && sdy === -1)) {
-          if (sdx === 1) Render3D.rotar(-1);
-          else if (sdx === -1) Render3D.rotar(1);
-          else Render3D.rotar(2);
-          autocam.prev = null;
-          autocam.n = 0;
-        }
-      }
     } else if (ev.code === 'KeyQ' || ev.code === 'KeyE') {
-      if (use3D) {
-        Render3D.rotar(ev.code === 'KeyQ' ? 1 : -1);
-        autocam.prev = null; autocam.n = 0;
-      }
+      if (use3D) Render3D.rotar(ev.code === 'KeyQ' ? 1 : -1);
     } else if (ev.code === 'Space') {
       ev.preventDefault();
       Game.interact();

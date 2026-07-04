@@ -636,7 +636,7 @@
     tuneles: ['ladrillo', 'hormigon'], hospital: ['azulejo', 'baldosa'],
     oficinas: ['azulejo', 'baldosa'], exterior: ['roca', 'tierra'],
     bosque: ['arbol', 'hierba'], ciudad: ['ladrillo', 'adoquin'],
-    torres: ['metal_futurista', 'panel'],
+    torres: ['metal_futurista', 'panel'], invernadero: ['cristal', 'piedra'],
   };
 
   window.Tiles = {

@@ -66,6 +66,144 @@
     gctx.putImageData(img, 0, 0);
   }
 
+  // ---------- pintores frontales a medida (llenan TODO el lienzo: sin márgenes) ----------
+  const SH = (c, f) => Tiles.shade(c, f);
+  function lienzo(w, h, fn) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    fn(c.getContext('2d'), w, h);
+    return c;
+  }
+  const PINTORES = {
+    puerta: (col) => lienzo(44, 64, (x, w, h) => {
+      x.fillStyle = '#241c12'; x.fillRect(0, 0, w, h);                 // marco
+      x.fillStyle = SH(col, 0.42); x.fillRect(3, 3, w - 6, h - 3);     // hoja
+      x.strokeStyle = SH(col, 0.7); x.lineWidth = 2;
+      x.strokeRect(8, 8, w - 16, 20);                                  // cuarterón sup
+      x.strokeRect(8, 34, w - 16, 20);                                 // cuarterón inf
+      x.fillStyle = '#e8d890';                                          // pomo
+      x.beginPath(); x.arc(w - 9, h / 2 + 2, 2.6, 0, 7); x.fill();
+      x.fillStyle = col; x.globalAlpha = 0.5;                           // luz bajo la puerta
+      x.fillRect(4, h - 3, w - 8, 3);
+    }),
+    ventana: (col) => lienzo(44, 64, (x, w, h) => {
+      x.fillStyle = '#2a2a2e'; x.fillRect(0, 0, w, h);
+      x.fillStyle = SH(col, 0.9); x.globalAlpha = 0.85;
+      const pw = (w - 12) / 2, ph = (h - 12) / 2;
+      for (const [px2, py2] of [[4, 4], [8 + pw, 4], [4, 8 + ph], [8 + pw, 8 + ph]])
+        x.fillRect(px2, py2, pw, ph);
+    }),
+    vending: () => lienzo(40, 64, (x, w, h) => {
+      x.fillStyle = '#a83848'; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#701828'; x.fillRect(0, 0, w, 4);
+      x.fillStyle = '#d8e8f0'; x.globalAlpha = 0.85;                    // escaparate
+      x.fillRect(4, 7, w - 16, h - 22);
+      x.globalAlpha = 1;
+      x.fillStyle = '#701828'; x.fillRect(w - 10, 7, 7, h - 22);        // panel
+      x.fillStyle = '#ffe060'; x.fillRect(w - 9, 12, 5, 5);             // botón 9
+      x.fillStyle = '#c8a830'; x.fillRect(w - 9, 20, 5, 5);             // botón 8
+      x.fillStyle = '#1a0c10'; x.fillRect(4, h - 11, w - 8, 7);         // bandeja
+    }),
+    reloj: () => lienzo(48, 28, (x, w, h) => {
+      x.fillStyle = '#20242a'; x.fillRect(0, 0, w, h);
+      x.strokeStyle = '#4a5058'; x.lineWidth = 2; x.strokeRect(1, 1, w - 2, h - 2);
+      x.fillStyle = '#40ff80';
+      x.font = 'bold 13px monospace'; x.textAlign = 'center';
+      x.fillText('88:88', w / 2, h / 2 + 5);
+    }),
+    boton: () => lienzo(40, 40, (x, w, h) => {
+      x.fillStyle = '#c8ccd4'; x.fillRect(0, 0, w, h);
+      x.strokeStyle = '#8a92a0'; x.strokeRect(1.5, 1.5, w - 3, h - 3);
+      x.fillStyle = '#d83030';
+      x.beginPath(); x.arc(w / 2, h / 2 - 4, 9, 0, 7); x.fill();
+      x.fillStyle = '#2a2e34'; x.font = 'bold 7px monospace'; x.textAlign = 'center';
+      x.fillText('ESCAPE', w / 2, h - 6);
+    }),
+    edificio: () => lienzo(44, 64, (x, w, h) => {
+      x.fillStyle = '#38404c'; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#6ae86a'; x.globalAlpha = 0.8;
+      for (let fy = 0; fy < 7; fy++)
+        for (let fx = 0; fx < 4; fx++)
+          if ((fx + fy) % 2 === 0) x.fillRect(4 + fx * 10, 4 + fy * 8.5, 6, 5);
+    }),
+    trampilla: (col) => lienzo(48, 48, (x, w, h) => {
+      x.fillStyle = '#3a332a'; x.fillRect(0, 0, w, h);                 // marco
+      x.fillStyle = '#060402'; x.fillRect(5, 5, w - 10, h - 10);        // hueco
+      const g = x.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, 18);
+      g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.globalAlpha = 0.55; x.fillStyle = g; x.fillRect(5, 5, w - 10, h - 10);
+      x.globalAlpha = 1;
+      x.fillStyle = '#5a5044';                                          // bisagras
+      x.fillRect(8, 2, 8, 4); x.fillRect(w - 16, 2, 8, 4);
+    }),
+    escalera: (col) => lienzo(48, 48, (x, w, h) => {
+      x.fillStyle = '#0a0806'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 6; i++) {
+        x.fillStyle = SH(col, 0.95 - i * 0.14);
+        x.fillRect(4, 4 + i * 7, w - 8, 6);
+      }
+    }),
+    taquilla: () => lienzo(48, 84, (x, w, h) => {
+      x.fillStyle = '#5a6a74'; x.fillRect(0, 0, w, h);
+      x.strokeStyle = '#39434b'; x.lineWidth = 2;
+      x.strokeRect(1, 1, w - 2, h - 2);
+      x.beginPath(); x.moveTo(w / 2, 2); x.lineTo(w / 2, h - 2); x.stroke();  // dos puertas
+      x.fillStyle = '#414c54';
+      for (const px2 of [6, w / 2 + 4])                                       // rejillas
+        for (let ry = 8; ry <= 22; ry += 7) x.fillRect(px2, ry, w / 2 - 10, 3);
+      x.fillStyle = '#2c343a';                                                // tiradores
+      x.fillRect(w / 2 - 7, h / 2 + 4, 3, 12); x.fillRect(w / 2 + 4, h / 2 + 4, 3, 12);
+      x.fillStyle = '#39434b'; x.fillRect(0, h - 6, w, 6);                    // zócalo
+    }),
+    archivador: () => lienzo(48, 84, (x, w, h) => {
+      x.fillStyle = '#7a7264'; x.fillRect(0, 0, w, h);
+      x.strokeStyle = '#544e42'; x.lineWidth = 2;
+      for (let i = 0; i < 4; i++) {
+        x.strokeRect(4, 4 + i * 20, w - 8, 17);
+        x.fillStyle = '#4a463c'; x.fillRect(w / 2 - 7, 11 + i * 20, 14, 4);
+      }
+    }),
+    nevera: () => lienzo(48, 84, (x, w, h) => {
+      x.fillStyle = '#c8d0cc'; x.fillRect(0, 0, w, h);
+      x.strokeStyle = '#8e9a94'; x.lineWidth = 2;
+      x.strokeRect(1, 1, w - 2, h - 2);
+      x.beginPath(); x.moveTo(2, 28); x.lineTo(w - 2, 28); x.stroke();
+      x.fillStyle = '#6e7a74';
+      x.fillRect(w - 10, 8, 4, 14); x.fillRect(w - 10, 34, 4, 26);
+    }),
+    camilla: () => lienzo(48, 32, (x, w, h) => {
+      x.fillStyle = '#c8d4cc'; x.fillRect(0, 0, w, 12);                 // colchoneta
+      x.fillStyle = '#e0e8e2'; x.fillRect(0, 0, w, 4);
+      x.fillStyle = '#6a746e'; x.fillRect(0, 12, w, h - 12);            // faldón
+      x.fillStyle = '#3a403c';
+      x.beginPath(); x.arc(9, h - 4, 4, 0, 7); x.fill();
+      x.beginPath(); x.arc(w - 9, h - 4, 4, 0, 7); x.fill();
+    }),
+    cofre: () => lienzo(44, 48, (x, w, h) => {
+      x.fillStyle = '#8a6a42'; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#6e5434'; x.fillRect(0, 0, w, 12);
+      x.fillRect(w / 2 - 3, 0, 6, h);
+      x.fillStyle = '#e0b040'; x.fillRect(w / 2 - 5, 16, 10, 12);
+    }),
+    caja: () => lienzo(44, 48, (x, w, h) => {
+      x.fillStyle = '#8a6a42'; x.fillRect(0, 0, w, h);
+      x.strokeStyle = '#5e4830'; x.lineWidth = 3;
+      x.strokeRect(2, 2, w - 4, h - 4);
+      x.beginPath(); x.moveTo(2, 2); x.lineTo(w - 2, h - 2);
+      x.moveTo(w - 2, 2); x.lineTo(2, h - 2); x.stroke();
+    }),
+    bidon: () => lienzo(44, 48, (x, w, h) => {
+      x.fillStyle = '#4a6858'; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#5e7c6c'; x.fillRect(6, 0, 10, h);
+      x.fillStyle = '#324a3e';
+      x.fillRect(0, 10, w, 5); x.fillRect(0, 30, w, 5);
+    }),
+  };
+  function pintado(clave, fn) {
+    if (texCache.has(clave)) return texCache.get(clave);
+    return tex(fn(), clave);
+  }
+
   // ---------- construcción de la escena del nivel ----------
   let lastLevelId = null;
   let solidosCamara = [];
@@ -96,7 +234,8 @@
   }
 
   function buildLevel(world) {
-    disposeLevel(lastLevelId === world.level.id);
+    const esMismoNivel = lastLevelId === world.level.id;
+    disposeLevel(esMismoNivel);
     lastLevelId = world.level.id;
     const g = world.map.grid;
     const T = MapGen.T;
@@ -186,34 +325,15 @@
         }
     }
 
-    // --- salidas ---
-    const PEGADAS = new Set(['puerta', 'ventana']);
-    const RITUAL_PARED = new Set(['reloj', 'vending', 'boton']);
+    // --- salidas (pintores a medida) ---
     world.map.exits.forEach((ex, exI) => {
       const paredNorte = esWall(ex.x, ex.y - 1) && tiles.wallStyle === 'tabique';
-      const c = Render.exitToCanvas(ex.def);
-      const estilo = ex.def.ritual ? 'ritual' : Render.exitStyle(ex.def);
-      const t2 = tex(c, 'exit-' + exI);
-      if (estilo === 'trampilla' || estilo === 'escalera') {
-        // plano tumbado sobre el suelo
-        const m = new THREE.Mesh(
-          new THREE.PlaneGeometry(0.95, 0.95),
-          new THREE.MeshBasicMaterial({ map: t2, transparent: true })
-        );
-        m.rotation.x = -Math.PI / 2;
-        m.position.set(ex.x + 0.5, 0.02, ex.y + 0.5);
-        levelGroup.add(m);
-      } else if (paredNorte &&
-        (PEGADAS.has(estilo) || (ex.def.ritual && RITUAL_PARED.has(ex.def.ritual)))) {
-        // FÍSICAMENTE en la cara sur del muro norte: plano vertical fijo
-        const m = new THREE.Mesh(
-          new THREE.PlaneGeometry(1, 1.4),
-          new THREE.MeshBasicMaterial({ map: t2, transparent: true })
-        );
-        m.position.set(ex.x + 0.5, 0.7, ex.y + 0.045);
-        levelGroup.add(m);
-      } else if (ex.def.ritual === 'nave') {
-        // pedestal 3D con la nave encima
+      const estilo = Render.exitStyle(ex.def);
+      const col = ex.def.tipo === 'escape' ? '#6ae86a' : ex.def.tipo === 'sellada' ? '#8a8a86' : '#e8c95a';
+      const rit = ex.def.ritual;
+
+      if (rit === 'nave') {
+        // pedestal 3D con la nave encima (billboard detallado existente)
         const ped = new THREE.Mesh(
           new THREE.BoxGeometry(0.5, 0.6, 0.5),
           new THREE.MeshLambertMaterial({ color: 0x6a6a72 })
@@ -221,22 +341,46 @@
         ped.position.set(ex.x + 0.5, 0.3, ex.y + 0.5);
         ped.castShadow = true;
         levelGroup.add(ped);
-        const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t2, transparent: true }));
+        const s = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: tex(Render.exitToCanvas(ex.def), 'exit-' + exI), transparent: true,
+        }));
         s.scale.set(0.8, 1.2, 1);
         s.position.set(ex.x + 0.5, 0.95, ex.y + 0.5);
         levelGroup.add(s);
-      } else {
-        // puerta/objeto exento: caja fina con profundidad real
-        const frente = new THREE.MeshBasicMaterial({ map: t2, transparent: true });
-        const lado = new THREE.MeshLambertMaterial({ color: 0x2a2620 });
-        const m = new THREE.Mesh(
-          new THREE.BoxGeometry(0.95, 1.42, 0.1),
-          [lado, lado, lado, lado, frente, frente]
-        );
-        m.position.set(ex.x + 0.5, 0.71, ex.y + 0.5);
-        m.castShadow = true;
-        levelGroup.add(m);
+        return;
       }
+      if (estilo === 'trampilla' || estilo === 'escalera') {
+        const t2 = pintado('p-' + estilo + col, () => PINTORES[estilo](col));
+        const m = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.96, 0.96),
+          new THREE.MeshBasicMaterial({ map: t2 })
+        );
+        m.rotation.x = -Math.PI / 2;
+        m.position.set(ex.x + 0.5, 0.025, ex.y + 0.5);
+        levelGroup.add(m);
+        return;
+      }
+      // elementos de pared con su pintor y tamaño propios
+      const SPEC = {
+        vending: { p: 'vending', w: 0.8, h: 1.32, y: 0.66, grosor: 0.42 },
+        reloj: { p: 'reloj', w: 0.9, h: 0.5, y: 1.15, grosor: 0.06 },
+        boton: { p: 'boton', w: 0.52, h: 0.52, y: 1.0, grosor: 0.06 },
+        edificio: { p: 'edificio', w: 0.95, h: 1.4, y: 0.7, grosor: 0.12 },
+        ventana: { p: 'ventana', w: 0.9, h: 1.3, y: 0.75, grosor: 0.07 },
+        puerta: { p: 'puerta', w: 0.92, h: 1.36, y: 0.68, grosor: 0.08 },
+      };
+      const spec = SPEC[rit] ?? SPEC[estilo] ?? SPEC.puerta;
+      const t2 = pintado('p-' + spec.p + col, () => PINTORES[spec.p](col));
+      const frente = new THREE.MeshBasicMaterial({ map: t2 });
+      const lado = new THREE.MeshLambertMaterial({ color: 0x241c14 });
+      const m = new THREE.Mesh(
+        new THREE.BoxGeometry(spec.w, spec.h, spec.grosor),
+        [lado, lado, lado, lado, frente, lado]
+      );
+      // pegado al muro norte; si no hay muro (raro), exento pero sólido
+      m.position.set(ex.x + 0.5, spec.y, paredNorte ? ex.y + spec.grosor / 2 + 0.01 : ex.y + 0.5);
+      m.castShadow = true;
+      levelGroup.add(m);
     });
 
     // --- props: muebles como GEOMETRÍA 3D empotrada, no sprays 2D ---
@@ -247,24 +391,23 @@
       reloj: 0x4e3d2b, cofre: 0x5e4830, caja: 0x6e5434, bidon: 0x324a3e,
     };
     for (const pr of world.map.props || []) {
-      const c = Render.propToCanvas(pr.id);
-      const frontTex = tex(c, 'prop-' + pr.id);
       const arrimado = PROPS_PARED.has(pr.id) && esWall(pr.x, pr.y - 1);
-      if (arrimado) {
-        // mueble EMPOTRADO contra el muro: caja con la cara frontal texturizada
-        const frente = new THREE.MeshLambertMaterial({ map: frontTex, transparent: true });
+      const conPintor = PINTORES[pr.id];
+      if (arrimado && conPintor) {
+        // mueble EMPOTRADO contra el muro con su frente pintado a medida
+        const esCamilla = pr.id === 'camilla';
+        const frente = new THREE.MeshLambertMaterial({ map: pintado('p-' + pr.id, conPintor) });
         const lado = new THREE.MeshLambertMaterial({ color: LADO_COLOR[pr.id] ?? 0x555550 });
         const m = new THREE.Mesh(
-          new THREE.BoxGeometry(0.66, 1.12, 0.3),
+          esCamilla ? new THREE.BoxGeometry(0.92, 0.56, 0.42) : new THREE.BoxGeometry(0.66, 1.14, 0.32),
           [lado, lado, lado, lado, frente, lado]
         );
-        m.position.set(pr.x + 0.5, 0.56, pr.y + 0.17);
+        m.position.set(pr.x + 0.5, esCamilla ? 0.28 : 0.57, pr.y + (esCamilla ? 0.28 : 0.18));
         m.castShadow = true;
         levelGroup.add(m);
         pr._mesh3d = m;
-      } else if (CAJAS.has(pr.id)) {
-        // cajas/cofres/bidones exentos: volumen pequeño
-        const frente = new THREE.MeshLambertMaterial({ map: frontTex, transparent: true });
+      } else if (CAJAS.has(pr.id) && conPintor) {
+        const frente = new THREE.MeshLambertMaterial({ map: pintado('p-' + pr.id, conPintor) });
         const lado = new THREE.MeshLambertMaterial({ color: LADO_COLOR[pr.id] ?? 0x6e5434 });
         const m = new THREE.Mesh(
           new THREE.BoxGeometry(0.55, 0.62, 0.45),
@@ -275,7 +418,9 @@
         levelGroup.add(m);
         pr._mesh3d = m;
       } else {
-        const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: frontTex, transparent: true }));
+        const s = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: tex(Render.propToCanvas(pr.id), 'prop-' + pr.id), transparent: true,
+        }));
         s.scale.set(1, 1.5, 1);
         s.position.set(pr.x + 0.5, 0.62, pr.y + 0.5);
         levelGroup.add(s);
@@ -311,10 +456,20 @@
 
     if (tiles.wallStyle !== 'tabique') solidosCamara = [];
 
-    // posición inicial de cámara y punto de mira sin lerp (evita barridos raros)
     const p = world.player;
-    camera.position.set(p.rx + 0.5, CAM.dy, p.ry + 0.5 + CAM.dz);
-    frame._look = new THREE.Vector3(p.rx + 0.5, CAM.lookY, p.ry + 0.5);
+    if (world._shift3d) {
+      // expansión del nivel infinito: la cámara se desplaza EXACTAMENTE con el
+      // mundo → ni un píxel de salto en pantalla
+      camera.position.x -= world._shift3d.x;
+      camera.position.z -= world._shift3d.z;
+      if (frame._look) { frame._look.x -= world._shift3d.x; frame._look.z -= world._shift3d.z; }
+      world._shift3d = null;
+    } else if (!esMismoNivel || !frame._look) {
+      // nivel nuevo: centrado inmediato
+      camera.position.set(p.rx + 0.5, CAM.dy, p.ry + 0.5 + CAM.dz);
+      frame._look = new THREE.Vector3(p.rx + 0.5, CAM.lookY, p.ry + 0.5);
+    }
+    // (remodelaciones del mismo nivel: la cámara no se toca)
   }
 
   function spriteTex(glyph, frame) {

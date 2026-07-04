@@ -182,6 +182,65 @@
     return g;
   }
 
+  // Invernadero flotante (Level 13): corredores lineales de cristal SOBRE EL
+  // VACÍO — «afloat amongst an empty, obscure sky». Nada de laberinto.
+  function genInvernadero(w, h, rng) {
+    const g = grid(w, h, T.VACIO);
+    const carve = (x, y, ancho) => {
+      for (let dy = 0; dy < ancho; dy++)
+        for (let dx = 0; dx < ancho; dx++)
+          set(g, x + dx, y + dy, T.SUELO);
+    };
+    // corredor principal serpenteante: segmentos rectos largos con quiebros
+    let x = 4, y = rng.int(h / 3, (h * 2) / 3);
+    let dirY = 0;
+    const hitos = [[x, y]];
+    while (x < w - 8) {
+      const largo = rng.int(8, 16);
+      for (let i = 0; i < largo && x < w - 5; i++) { carve(x, y, 3); x++; }
+      hitos.push([x, y]);
+      // quiebro vertical
+      dirY = rng.pick([-1, 1]);
+      const salto = rng.int(4, 9);
+      for (let i = 0; i < salto; i++) {
+        const ny = y + dirY;
+        if (ny < 3 || ny > h - 7) break;
+        y = ny;
+        carve(x, y, 3);
+      }
+      hitos.push([x, y]);
+    }
+    // pasarelas laterales cortas con mirador
+    for (const [hx, hy] of rng.shuffle(hitos).slice(0, 4)) {
+      const dir = rng.pick([-1, 1]);
+      const largo = rng.int(4, 7);
+      for (let i = 1; i <= largo; i++) {
+        const ny = hy + dir * i;
+        if (ny < 3 || ny > h - 6) break;
+        carve(hx, ny, 2);
+      }
+    }
+    // salas-jardín con vegetación
+    for (let i = 0; i < 3; i++) {
+      const [hx, hy] = rng.pick(hitos);
+      const rw = rng.int(6, 9), rh = rng.int(5, 8);
+      const rx = Math.max(2, Math.min(w - rw - 2, hx - 2));
+      const ry = Math.max(2, Math.min(h - rh - 2, hy - 2));
+      for (let yy = ry; yy < ry + rh; yy++)
+        for (let xx = rx; xx < rx + rw; xx++)
+          set(g, xx, yy, rng.chance(0.18) ? T.DECOR : T.SUELO);
+    }
+    // paredes de cristal: todo borde del suelo que da al vacío
+    for (let yy = 0; yy < h; yy++)
+      for (let xx = 0; xx < w; xx++) {
+        if (at(g, xx, yy) !== T.VACIO) continue;
+        const vecinoSuelo = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) =>
+          walkable(at(g, xx + dx, yy + dy)));
+        if (vecinoSuelo) set(g, xx, yy, T.PARED);
+      }
+    return g;
+  }
+
   // Ciudad: manzanas sólidas y calles (Level 306, 995)
   function genCiudad(w, h, rng) {
     const g = grid(w, h, T.SUELO);
@@ -300,6 +359,7 @@
     bosque: (w, h, rng, lv) => genBosque(w, h, rng, { lagos: (lv.reglas || []).includes('agua_traicionera') ? 5 : 2 }),
     ciudad: (w, h, rng) => genCiudad(w, h, rng),
     torres: (w, h, rng) => genTorres(w, h, rng),
+    invernadero: (w, h, rng) => genInvernadero(w, h, rng),
   };
 
   // ---------- generación completa de un nivel ----------
@@ -324,13 +384,17 @@
     // pared al norte para que las puertas queden pegadas a la pared
     const exits = [];
     const usable = (levelDef.salidas || []).filter((s) => s.tipo !== 'void');
-    const farPool = far.slice(0, Math.max(usable.length * 8, 40));
+    const farPool = far.slice(0, Math.max(usable.length * 10, 60));
     const shuffled = rng.shuffle(farPool);
-    const spots = shuffled
-      .filter(([x, y]) => at(g, x, y - 1) === T.PARED)
-      .concat(shuffled.filter(([x, y]) => at(g, x, y - 1) !== T.PARED));
-    usable.forEach((s, i) => {
-      const p = spots[i % spots.length];
+    const conPared = shuffled.filter(([x, y]) => at(g, x, y - 1) === T.PARED);
+    const sinPared = shuffled.filter(([x, y]) => at(g, x, y - 1) !== T.PARED);
+    // las puertas/elementos de pared EXIGEN pared al norte; trampillas/escaleras van libres
+    const esDeSuelo = (s) => /suelo|caer|agujero|fosa|hoyo|trampilla|pozo|precipicio|fall|escalera|ascensor|elevador/i.test(s.texto || '');
+    let iPared = 0, iLibre = 0;
+    usable.forEach((s) => {
+      let p;
+      if (esDeSuelo(s)) p = sinPared[iLibre++ % Math.max(1, sinPared.length)] ?? conPared[iPared++ % Math.max(1, conPared.length)];
+      else p = conPared[iPared++ % Math.max(1, conPared.length)] ?? sinPared[iLibre++ % Math.max(1, sinPared.length)];
       if (p) exits.push({ x: p[0], y: p[1], def: s });
     });
 
@@ -349,10 +413,12 @@
       pasillos: ['cable'], garaje: ['cono', 'bidon'], tuneles: ['bidon', 'cable'],
       hospital: ['camilla', 'silla'], oficinas: ['silla', 'caja'],
       bosque: ['seta', 'roca_p'], exterior: ['roca_p'], ciudad: ['farola'], torres: ['caja'],
+      invernadero: ['silla', 'caja'],
     };
     const CONT_BIOMA = {
       pasillos: 'taquilla', garaje: 'taquilla', tuneles: 'cofre', hospital: 'nevera',
       oficinas: 'archivador', bosque: 'cofre', exterior: 'cofre', ciudad: 'cofre', torres: 'cofre',
+      invernadero: 'cofre',
     };
     const props = [];
     const exitKeys = new Set(exits.map((e) => e.y * g.w + e.x));

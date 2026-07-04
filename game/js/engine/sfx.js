@@ -18,7 +18,7 @@
   let idleStop = null;
   const overrides = {};
 
-  const NOMBRES = ['paso', 'golpe', 'dano', 'recoger', 'dado', 'puerta', 'registrar', 'muerte', 'victoria', 'latido', 'ui', 'derrumbe', 'bisturi'];
+  const NOMBRES = ['paso', 'golpe', 'dano', 'recoger', 'dado', 'puerta', 'registrar', 'muerte', 'victoria', 'latido', 'ui', 'derrumbe', 'bisturi', 'crujido'];
   for (const n of NOMBRES) {
     for (const ext of ['mp3', 'ogg', 'wav']) {
       const el = new window.Audio();
@@ -132,6 +132,11 @@
     },
     puerta() { ruido(0.4, 320, 0.36, 'lowpass', 90); tono(70, 0.35, 0.32, 'sine', 45); setTimeout(() => ctx && ruido(0.1, 1800, 0.1, 'bandpass'), 300); },
     registrar() { ruido(0.32, 1800, 0.26, 'bandpass', 500); tono(210, 0.14, 0.18, 'square', 190); },
+    crujido() { // versión suave: la expansión del nivel infinito
+      tono(46, 0.7, 0.22, 'sine', 30);
+      for (let i = 0; i < 3; i++)
+        setTimeout(() => ctx && ruido(0.1, 700 + Math.random() * 400, 0.1, 'bandpass', 200), 80 + i * 140);
+    },
     derrumbe() {
       // retumbo profundo + crujidos de roca en cascada
       tono(38, 1.4, 0.55, 'sine', 23);
@@ -362,7 +367,7 @@
   const RECETA_BIOMA = {
     pasillos: 'hum_clasico', garaje: 'hum_suave', tuneles: 'goteo_tuberias',
     hospital: 'hum_suave', oficinas: 'hum_suave', exterior: 'viento',
-    bosque: 'viento', ciudad: 'ciudad_noche', torres: 'viento',
+    bosque: 'viento', ciudad: 'ciudad_noche', torres: 'viento', invernadero: 'invernadero',
   };
 
   function stopAmbient() {

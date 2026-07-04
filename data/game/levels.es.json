@@ -394,10 +394,10 @@
   "nombre": "Level 13: «Vitrum Madness»",
   "clase": "Clase 1 · Peligro psicológico",
   "peligro": 1,
-  "bioma": "tuneles",
+  "bioma": "invernadero",
   "tam": [
-   83,
-   69
+   84,
+   56
   ],
   "paleta": {
    "suelo": "#5e6e5a",
