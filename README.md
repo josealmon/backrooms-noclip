@@ -53,3 +53,21 @@ de qué nivel conduce a cuál, coloreado por peligro, con la ruta de escape marc
 Las 734 páginas de niveles ya están en `data/parsed/levels.json`. Para añadir niveles:
 crear su ficha en `data/game/levels.es.json` (bioma, paleta, reglas, entidades, salidas)
 y ejecutar `build-data.js`. El motor los acepta sin tocar código.
+
+## Contribuir
+
+Los Pull Requests son bienvenidos — lee [CONTRIBUTING.md](CONTRIBUTING.md) antes.
+Solo el autor acepta cambios en este repositorio.
+
+## Licencia
+
+- **Código y juego**: [PolyForm Noncommercial 1.0.0](LICENSE.md) — © 2026 MeltStudio.
+  Puedes usarlo, estudiarlo y modificarlo libremente **sin fines comerciales**.
+  Cualquier uso comercial queda reservado al autor.
+- **Lore y textos derivados de la wiki**: el contenido descriptivo procede de
+  [backrooms.fandom.com](https://backrooms.fandom.com) y pertenece a sus autores
+  bajo [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/); cada ficha
+  del juego conserva la `url` de su página original como atribución.
+- **Terceros vendorizados**: [Three.js](https://threejs.org) r147 (licencia MIT)
+  y fuentes tipográficas bajo [SIL OFL](https://openfontlicense.org/) en
+  `game/assets/fonts/`.

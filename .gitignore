@@ -1,0 +1,16 @@
+# Sistema operativo
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editores
+.vscode/
+.idea/
+
+# Node (el proyecto no usa npm, pero por si alguien instala algo localmente)
+node_modules/
+package-lock.json
+
+# Temporales
+*.log
+*.tmp
