@@ -706,6 +706,24 @@
       ctx.fillRect(0, 0, W, H);
     }
 
+    // jugadores remotos del MMO (cuerpo + capa social); en 2D van por encima
+    // del mapa — suficiente para el render de respaldo
+    if (window.Otros && world.otros) {
+      for (const o of world.otros) {
+        const ox = o.rx * TILE - cam.x, oy = o.ry * TILE - cam.y;
+        if (ox < -TILE || oy < -TILE || ox > W + TILE || oy > H + TILE) continue;
+        const dir = o.rot === 0 ? 'up' : o.rot === 2 ? 'down' : 'side';
+        const sid = 'player_' + dir;
+        const anda = Math.abs(o.rx - o.x) + Math.abs(o.ry - o.y) > 0.03;
+        const img = Sprites.get(sid, anda ? Math.floor(t / 150) % Sprites.frameCount(sid) : 0);
+        ctx.save();
+        ctx.translate(ox + 24, oy + 20);
+        if (o.rot === 3) ctx.scale(-1, 1);
+        ctx.drawImage(img, -24, -24);
+        ctx.restore();
+      }
+      Otros.overlay(ctx, (wx, wy) => [wx * TILE - cam.x + TILE / 2, wy * TILE - cam.y + TILE / 2], world, t);
+    }
     if (!window.NOFX) Effects.draw(ctx, cam.x, cam.y, t, TILE);
     ctx.restore(); // fin de la sacudida
 

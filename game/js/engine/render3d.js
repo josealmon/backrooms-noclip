@@ -33,6 +33,7 @@
   let itemsVersionVista = -1;    // items del suelo rehechos al cambiar world.itemsVersion
   let entitySprites = new Map(); // uid -> THREE.Sprite
   let itemSprites = new Map();   // index -> sprite
+  let otrosSprites = new Map();  // id -> sprite (jugadores remotos del MMO)
   let playerSprite = null;
   let texCache = new Map();      // clave -> THREE.Texture
   let grain = null;
@@ -376,6 +377,7 @@
     scene.add(actorGroup);
     entitySprites.clear();
     itemSprites.clear();
+    otrosSprites.clear();
     playerSprite = null;
   }
 
@@ -1347,6 +1349,31 @@
     // objetos recogidos
     for (const [i, s] of itemSprites) s.visible = !(world.map.items[i]?.taken ?? true);
 
+    // jugadores remotos (BACKROOMS MMO): mismo patrón que las entidades, con el
+    // sprite del jugador orientado según su rotación relativa a la cámara
+    if (world.otros && window.Otros) {
+      const vivos = new Set();
+      const camDir = CAM_MODO === 'tercera' ? p.rot : ((4 - camRot) % 4);
+      for (const o of world.otros) {
+        vivos.add(o.id);
+        let s = otrosSprites.get(o.id);
+        if (!s) {
+          s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true }));
+          s.scale.set(1, SPRITE_H, 1);
+          actorGroup.add(s);
+          otrosSprites.set(o.id, s);
+        }
+        const [sid2, flip2] = Otros.spriteDe(o, camDir);
+        const f2 = (Math.abs(o.rx - o.x) + Math.abs(o.ry - o.y) > 0.03)
+          ? Math.floor(t / 150) % Sprites.frameCount(sid2) : 0;
+        s.material.map = spriteTexFlip(sid2, f2, flip2);
+        s.material.needsUpdate = true;
+        s.position.set(o.rx + 0.5, SPRITE_H / 2 + 0.02, o.ry + 0.5);
+      }
+      for (const [id, s] of otrosSprites)
+        if (!vivos.has(id)) { actorGroup.remove(s); s.material.dispose(); otrosSprites.delete(id); }
+    }
+
     // En el último tramo de Level 0, los mismos materiales pierden el amarillo
     // y dejan asomar el gris del garaje. No hay pantalla que anuncie el cambio.
     const fase0 = level0Phase(world);
@@ -1535,6 +1562,8 @@
   function drawOverlay(world, t) {
     octx.clearRect(0, 0, W, H);
     if (!window.NOFX) Effects.draw(octx, 0, 0, t, 48, project);
+    // capa social del MMO: nombres flotantes y bocadillos de chat
+    if (window.Otros && world.otros) Otros.overlay(octx, project, world, t);
 
     // flash de daño
     const dt = t - world.ui.flashT;

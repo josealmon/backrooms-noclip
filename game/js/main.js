@@ -151,7 +151,42 @@
   document.addEventListener('keydown', (ev) => {
     if (!world.level || world.over) return;
     if (document.getElementById('screen-card').style.display !== 'none') return;
+    // escribiendo en el chat del MMO: el juego no oye nada
+    if (window.Net && Net.chatAbierto && Net.chatAbierto()) return;
     const tercera = use3D && Render3D.modo === 'tercera';
+    // ---------- modo online (BACKROOMS MMO): moverse, hablar y mirar ----------
+    if (world.online) {
+      if (KEYS[ev.code]) {
+        ev.preventDefault();
+        const [sdx, sdy] = KEYS[ev.code];
+        if (tercera) {
+          if (sdy === -1) Net.avanzar(1);
+          else if (sdy === 1) Net.avanzar(-1);
+          else Net.girar(sdx);
+        } else {
+          let dx = sdx, dy = sdy;
+          if (use3D && Render3D.rot) {
+            const th = -Render3D.rot * Math.PI / 2;
+            dx = Math.round(Math.cos(th) * sdx - Math.sin(th) * sdy);
+            dy = Math.round(Math.sin(th) * sdx + Math.cos(th) * sdy);
+          }
+          Net.moverPantalla(dx, dy);
+        }
+      } else if (ev.code === 'KeyT' || ev.code === 'Enter') {
+        ev.preventDefault();
+        Net.abrirChat();
+      } else if (ev.code === 'KeyF') Game.toggleLuz();
+      else if (ev.code === 'KeyL') world.ui.toggleLog();
+      else if (ev.code === 'KeyC') world.ui.toggleCodex();
+      else if (ev.code === 'KeyM' || ev.code === 'KeyN') Minimap.toggleBig();
+      else if (ev.code === 'Escape') {
+        if (Minimap.visible) Minimap.toggleBig(false);
+        else if (sndMenu.style.display !== 'none') cerrarSndMenu();
+        else abrirSndMenu();
+      }
+      // (Espacio/X/Q/E/G/B/1-6 llegan en M2 con el mundo interactivo)
+      return;
+    }
     const autoRepeatTime2DMove = 150; // tiempo en ms mínimo entre pasos al mantener pulsada una tecla de movimiento en modo 2D
     const autoRepeatTime3DYMove = 150; // tiempo en ms mínimo entre pasos al mantener pulsada una tecla de movimiento vertical en modo 3D
     const autoRepeatTime3DXMove = 600; // tiempo en ms mínimo entre pasos al mantener pulsada una tecla de movimiento horizontal en modo 3D
@@ -266,9 +301,20 @@
   const params = new URLSearchParams(location.search);
   if (params.get('nofx')) window.NOFX = true;
   if (params.get('debug3d')) window.DEBUG3D_ON = true;
-  if ((params.get('autostart') || params.get('selftest')) && !Game.Profiles.activeName())
-    Game.Profiles.create('Errante');
-  if (params.get('autostart')) {
+  if ((params.get('autostart') || params.get('selftest') || params.get('online')) && !Game.Profiles.activeName())
+    Game.Profiles.create(params.get('nombre') || 'Errante');
+  // ---------- BACKROOMS MMO: ?online=1 conecta al mundo compartido ----------
+  if (params.get('online')) {
+    Net.iniciar(params.get('nombre') || Game.Profiles.activeName() || 'Errante');
+    // la tarjeta del nivel aparece al recibir la bienvenida; se entra sola
+    const esperaCard = setInterval(() => {
+      const btn = document.getElementById('btn-enter');
+      if (Net.activo && btn && document.getElementById('screen-card').style.display !== 'none') {
+        clearInterval(esperaCard);
+        btn.click();
+      }
+    }, 100);
+  } else if (params.get('autostart')) {
     Game.startRun(params.get('seed') || undefined);
     if (params.get('nivel') && world.data.levels[params.get('nivel')]) {
       // salto directo para pruebas

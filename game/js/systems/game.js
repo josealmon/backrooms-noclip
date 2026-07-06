@@ -626,6 +626,9 @@
 
   // ---------- turno del mundo ----------
   function worldStep() {
+    // BACKROOMS MMO: en el mundo compartido la simulación vive en el servidor —
+    // aquí no avanza ningún turno local (ventana, reglas, entidades, sed…)
+    if (world.online) return;
     world.turn++;
     world.turnTotal++;
 
