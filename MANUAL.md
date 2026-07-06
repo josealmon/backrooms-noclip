@@ -282,6 +282,13 @@ que solo tú puedes aceptar o rechazar.
   - Para rechazar: botón **Close pull request**, mejor con un comentario amable del porqué.
 - **Issues**: la pestaña «Issues» es el buzón de bugs y sugerencias de la comunidad —
   puedes enseñarla en directo y pedirle a Claude que arregle los que te convenzan.
+- **Noticias automáticas en Discord** (ya configurado, 2026-07-06): cada push a `main`,
+  PR, issue y release aparece solo en el canal de Discord. Cómo se montó, por si hay que
+  repetirlo: en Discord → rueda del canal → Integraciones → Webhooks → Nuevo webhook →
+  Copiar URL; y esa URL (añadiéndole `/github` al final) se registra en GitHub →
+  Settings → Webhooks (o se le pega a Claude y lo hace con `gh`). ⚠ La URL del webhook
+  es SECRETA (quien la tenga puede escribir en tu canal): no la enseñes en directo ni la
+  subas al repositorio. Si se filtra: bórrala en Discord, crea otra y reconfigura.
 
 ## 12. Si algo falla
 
