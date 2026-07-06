@@ -271,6 +271,15 @@ que solo tú puedes aceptar o rechazar.
   de que decidas.
 - **Aceptar un PR**: botón verde **Merge pull request** en la web (solo tú lo ves).
   Consejo: nunca aceptes un PR sin que Claude lo haya revisado antes.
+- **Inspeccionar un PR tú mismo** (no hace falta ningún programa, todo en el navegador):
+  - Pestaña **Conversation** del PR: la explicación del autor y los comentarios. Si el PR
+    trae sonidos o vídeos de muestra, se reproducen ahí mismo con el play.
+  - Pestaña **Files changed**: todos los archivos que toca, con los cambios en colores —
+    **rojo = línea que se quita, verde = línea que entra**. Los archivos de audio/imagen
+    salen como «Binary file» (GitHub no puede mostrarlos como texto).
+  - Pasa el ratón por una línea y aparece un **+** azul: deja un comentario al autor ahí
+    mismo para pedir cambios antes de aceptar.
+  - Para rechazar: botón **Close pull request**, mejor con un comentario amable del porqué.
 - **Issues**: la pestaña «Issues» es el buzón de bugs y sugerencias de la comunidad —
   puedes enseñarla en directo y pedirle a Claude que arregle los que te convenzan.
 
