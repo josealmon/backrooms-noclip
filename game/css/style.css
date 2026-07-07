@@ -92,11 +92,13 @@ html, body { height: 100%; background: #060504; color: var(--hueso);
   box-shadow: 0 0 80px rgba(0,0,0,1); image-rendering: pixelated; }
 #gl-canvas { position: absolute; top: 0; left: 0; border: 1px solid #22201a; }
 #game-wrap.modo3d #game-canvas { position: relative; background: transparent; box-shadow: none; }
-#vol-slider-title { -webkit-appearance: none; appearance: none; width: 90px; height: 4px;
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 90px; height: 4px;
   background: #3a352a; outline: none; cursor: pointer; vertical-align: middle; }
-#vol-slider-title::-webkit-slider-thumb {
+input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none; width: 12px; height: 12px;
   background: var(--amarillo); border: 1px solid #0a0906; cursor: pointer; }
+input[type="range"]::-moz-range-thumb {
+  width: 12px; height: 12px; border: 1px solid #0a0906; background: var(--amarillo); cursor: pointer; border-radius: 0; }
 /* v16: botón-pergamino del registro completo + moodles de estado (arriba) */
 #btn-log { position: absolute; top: 10px; left: 10px; width: 28px; height: 28px;
   background: rgba(10,9,6,.72); border: 1px solid var(--borde); cursor: pointer;
