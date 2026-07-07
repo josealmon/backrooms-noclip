@@ -323,12 +323,80 @@ class Sala {
     }, 2500);
   }
 
+  // ---------- remodelación no euclidiana: EVENTO de sala (v21) ----------
+  // El mismo algoritmo del modo solo (regenerar un chunk 14×14 lejos de la
+  // vista, conservando bordes y validando conectividad) pero para TODOS a la
+  // vez: el crujido que recorre el nivel lo oye la sala entera.
+  remodelar() {
+    const g = this.map.grid, T = MapGen.T, CH = 14;
+    if (g.w < CH + 6 || g.h < CH + 6) return false;
+    const rng = this.rng;
+    for (let intento = 0; intento < 12; intento++) {
+      const cx = rng.int(2, g.w - CH - 3);
+      const cy = rng.int(2, g.h - CH - 3);
+      // fuera de la vista de TODOS los jugadores de la sala
+      let vista = false;
+      for (const j of this.jugadores.values()) {
+        const ncx = Math.max(cx, Math.min(j.x, cx + CH - 1));
+        const ncy = Math.max(cy, Math.min(j.y, cy + CH - 1));
+        if (Math.max(Math.abs(j.x - ncx), Math.abs(j.y - ncy)) < 20) { vista = true; break; }
+      }
+      if (vista) continue;
+      if (this.map.exits.some((e) => e.x >= cx && e.x < cx + CH && e.y >= cy && e.y < cy + CH)) continue;
+
+      const backup = new Uint8Array(CH * CH);
+      for (let y = 0; y < CH; y++)
+        for (let x = 0; x < CH; x++)
+          backup[y * CH + x] = g.t[(cy + y) * g.w + (cx + x)];
+
+      for (let y = 1; y < CH - 1; y++)
+        for (let x = 1; x < CH - 1; x++) {
+          const gx = cx + x, gy = cy + y;
+          const viejo = g.t[gy * g.w + gx];
+          if (viejo === T.VACIO || viejo === T.AGUA) continue;
+          const pilar = (gx % 2 === 0 && gy % 2 === 0) || rng.chance(0.22);
+          g.t[gy * g.w + gx] = pilar ? T.PARED : T.SUELO;
+        }
+      const dentro = (x, y) => x >= cx && x < cx + CH && y >= cy && y < cy + CH;
+      for (const it of this.map.items) if (!it.taken && dentro(it.x, it.y)) g.t[it.y * g.w + it.x] = T.SUELO;
+      for (const pr of this.map.props || []) if (dentro(pr.x, pr.y)) g.t[pr.y * g.w + pr.x] = T.SUELO;
+      for (const e of this.entidades) if (e.viva && dentro(e.x, e.y)) g.t[e.y * g.w + e.x] = T.SUELO;
+
+      // validar: salidas Y jugadores siguen conectados entre sí (BFS del spawn)
+      const dist = MapGen.bfsDist(g, this.map.spawn[0], this.map.spawn[1]);
+      const ok = this.map.exits.every((e) => dist[e.y * g.w + e.x] >= 0) &&
+        [...this.jugadores.values()].every((j) => dist[j.y * g.w + j.x] >= 0);
+      if (!ok) {
+        for (let y = 0; y < CH; y++)
+          for (let x = 0; x < CH; x++)
+            g.t[(cy + y) * g.w + (cx + x)] = backup[y * CH + x];
+        continue;
+      }
+
+      const tiles = [];
+      for (let y = 0; y < CH; y++)
+        for (let x = 0; x < CH; x++) tiles.push(g.t[(cy + y) * g.w + (cx + x)]);
+      this.difundir({ t: 'remodel', x: cx, y: cy, ch: CH, tiles });
+      for (const j of this.jugadores.values()) this.tune(j, 2); // deja huella en todos
+      return true;
+    }
+    return false;
+  }
+
   // ---------- tick de simulación (lo llama server.js a 10 Hz) ----------
   tick(ahora) {
     if (!this.jugadores.size) return;
     for (const jug of this.jugadores.values())
       if (jug.canal && ahora >= jug.canal.hasta) this.resolverCanal(jug);
     Entidades.tick(this, ahora);
+    // regla no_euclidiana de la ficha: cada 45-90 s el nivel se reorganiza
+    if ((this.def.reglas || []).includes('no_euclidiano')) {
+      if (!this._remodelEn) this._remodelEn = ahora + 45000 + this.rng.int(0, 45000);
+      if (ahora >= this._remodelEn) {
+        this._remodelEn = ahora + 45000 + this.rng.int(0, 45000);
+        this.remodelar();
+      }
+    }
   }
 
   chat(jug, txt) {

@@ -259,6 +259,23 @@
         if (window.Effects) Effects.bubble(w.player.x, w.player.y, `📢 ${m.txt}`, w.player);
         break;
 
+      // ---------- remodelación no euclidiana: el nivel cambia PARA TODOS ----------
+      case 'remodel': {
+        const g = w.map.grid;
+        for (let y = 0; y < m.ch; y++)
+          for (let x = 0; x < m.ch; x++) {
+            g.t[(m.y + y) * g.w + (m.x + x)] = m.tiles[y * m.ch + x];
+            w.explored[(m.y + y) * g.w + (m.x + x)] = 0; // la memoria de la zona se borra
+          }
+        w.mapaVersion = (w.mapaVersion || 0) + 1; // el render 3D reconstruye
+        fov(w);
+        w.log(w.level.id === 'level-0'
+          ? 'El zumbido cambia de tono. En algún lugar, un pasillo ya no conduce al mismo sitio.'
+          : 'Un crujido lejano recorre el nivel: las Backrooms se reorganizan.', 'danger');
+        if (window.Sfx) Sfx.play(w.level.id === 'level-0' ? 'crujido' : 'derrumbe');
+        break;
+      }
+
       case 'aviso': w.log(m.txt, 'event'); break;
       case 'error': w.log(m.txt, 'danger'); break;
     }
