@@ -205,8 +205,18 @@ function comando(jug, sala, linea) {
     const r = buscarJugador(arg);
     if (r) { db.ban(r.jug.token); r.jug.ws.close(1008, 'baneado'); sala.enviar(jug.ws, { t: 'aviso', txt: `${r.jug.nombre} baneado.` }); }
     else sala.enviar(jug.ws, { t: 'aviso', txt: 'No hay nadie con ese nombre.' });
+  } else if (cmd === '/tp' && arg) {
+    // teletransporte de guardián: /tp level-14 (o /tp 14) — debug entre niveles
+    const limpio = arg.trim().toLowerCase();
+    const id = DATA.levels[limpio] ? limpio
+      : DATA.levels['level-' + limpio] ? 'level-' + limpio : null;
+    if (!id) {
+      sala.enviar(jug.ws, { t: 'aviso', txt: `Nivel desconocido: «${arg}». Ejemplos: /tp 14 · /tp level-483` });
+      return;
+    }
+    cambiarDeSala(jug, sala, { destino: id, texto: 'El guardián camina por donde quiere.' });
   } else {
-    sala.enviar(jug.ws, { t: 'aviso', txt: 'Comandos: /anuncio <txt> · /kick <nombre> · /mute <nombre> [min] · /ban <nombre>' });
+    sala.enviar(jug.ws, { t: 'aviso', txt: 'Comandos: /anuncio <txt> · /kick <nombre> · /mute <nombre> [min] · /ban <nombre> · /tp <nivel>' });
   }
 }
 

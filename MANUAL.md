@@ -331,6 +331,8 @@ El servidor arranca solo al encender y se reinicia si se cae.
   el instalador te dice dónde; NO la digas en directo).
 - `/anuncio texto` — banner para TODOS los jugadores de todas las salas.
 - `/kick nombre` · `/mute nombre 10` (minutos) · `/ban nombre` (permanente).
+- `/tp 14` (o `/tp level-483`) — teletransporte de guardián a cualquier nivel:
+  tu menú de debug para enseñar niveles en directo.
 
 **D. Mantenimiento:**
 - Actualizar a la última versión: `bash /opt/backrooms-mmo/deploy/desplegar.sh`

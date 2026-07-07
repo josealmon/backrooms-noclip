@@ -67,7 +67,8 @@ Environment=MMO_ADMIN=tu-clave-secreta
 
 Después: `systemctl daemon-reload && systemctl restart backrooms-mmo`.
 En el chat del juego: `/admin tu-clave-secreta` te convierte en guardián →
-`/anuncio <texto>` (global), `/kick <nombre>`, `/mute <nombre> [min]`, `/ban <nombre>`.
+`/anuncio <texto>` (global), `/kick <nombre>`, `/mute <nombre> [min]`, `/ban <nombre>`
+y `/tp <nivel>` (teletransporte de debug: `/tp 14` o `/tp level-483`).
 No escribas la clave en directo.
 
 ## Operación diaria
