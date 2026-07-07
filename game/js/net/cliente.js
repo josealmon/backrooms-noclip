@@ -13,6 +13,10 @@
   let inputEnviado = { dx: 0, dy: 0 };
   let rotEnviada = 0, rotUltEnvio = 0;
   let tileFov = null; // último tile con FOV calculado
+  // Rastro de posiciones predichas (~1 s). La posición autoritativa del
+  // servidor llega VIEJA (RTT + tick de 100 ms): hay que compararla con dónde
+  // estábamos ENTONCES — compararla con el presente da tirones con ping alto.
+  const rastro = [];
 
   function urlServidor() {
     const params = new URLSearchParams(location.search);
@@ -106,6 +110,7 @@
         if (m.id === miId) {
           w.player.x = m.x; w.player.y = m.y;
           w.player.rx = m.x; w.player.ry = m.y;
+          rastro.length = 0;
           fov(w);
         } else Otros.mueve(m.id, m.x, m.y);
         break;
@@ -377,7 +382,11 @@
   // que el servidor — la reconciliación casi nunca tiene que corregir
   function frame(dt) {
     const w = Game.world;
-    if (!listo || w.escondido || (!input.dx && !input.dy)) return;
+    if (!listo) return;
+    const t = performance.now();
+    rastro.push({ t, x: w.player.x, y: w.player.y });
+    while (rastro.length && t - rastro[0].t > 1000) rastro.shift();
+    if (w.escondido || (!input.dx && !input.dy)) return;
     const [nx, ny] = Fisica.mover(w.map.grid, w.player.x, w.player.y, input.dx, input.dy, dt, Fisica.VEL_JUGADOR);
     w.player.x = nx; w.player.y = ny;
     const tx = Fisica.tileDe(nx), ty = Fisica.tileDe(ny);
@@ -387,13 +396,22 @@
     }
   }
 
-  // posición autoritativa propia: desviación grande = snap; pequeña = mezcla
+  // Posición autoritativa propia, tolerante a la latencia: si el servidor
+  // confirma algún punto de nuestro rastro reciente (es decir, solo va por
+  // detrás en el tiempo), NO se corrige nada. Solo una desviación respecto a
+  // todo el rastro es desincronización real: suave si es leve, corte si es grande.
   function reconciliar(w, sx, sy) {
-    const d = Fisica.dist(w.player.x, w.player.y, sx, sy);
-    if (d > 0.5) { w.player.x = sx; w.player.y = sy; fov(w); }
-    else if (d > 0.03) {
-      w.player.x += (sx - w.player.x) * 0.15;
-      w.player.y += (sy - w.player.y) * 0.15;
+    let d = Fisica.dist(w.player.x, w.player.y, sx, sy);
+    for (let i = rastro.length - 1; i >= 0 && d >= 0.35; i--)
+      d = Math.min(d, Fisica.dist(rastro[i].x, rastro[i].y, sx, sy));
+    if (d < 0.35) return; // el servidor va por nuestro rastro: todo en orden
+    if (d > 1.5) {        // desincronización real (teleport perdido, pared…)
+      w.player.x = sx; w.player.y = sy;
+      rastro.length = 0;
+      fov(w);
+    } else {              // deriva moderada: acercamiento suave, sin tirón
+      w.player.x += (sx - w.player.x) * 0.1;
+      w.player.y += (sy - w.player.y) * 0.1;
     }
   }
 
