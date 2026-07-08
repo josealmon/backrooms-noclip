@@ -2395,8 +2395,8 @@
   "peligro": 1,
   "bioma": "exterior",
   "tam": [
-   50,
-   50
+   90,
+   90
   ],
   "paleta": {
    "suelo": "#c8d4e0",
@@ -2405,8 +2405,8 @@
    "luz": "#fff8f0",
    "fondo": "#182028"
   },
-  "vision": 7,
-  "oscuridad": 0.3,
+  "vision": 6,
+  "oscuridad": 0.38,
   "descripcion": "Un paseo de linternas bajo la última nevada. El frío cala despacio y las farolas de papel parpadean con calidez extraña. Es tranquilo. Demasiado tranquilo para las Backrooms.",
   "cita": "Camina contigo mismo. Solamente.",
   "reglas": [
@@ -2516,8 +2516,8 @@
   "peligro": 3,
   "bioma": "exterior",
   "tam": [
-   50,
-   50
+   100,
+   100
   ],
   "paleta": {
    "suelo": "#e8e8ea",
@@ -2526,8 +2526,8 @@
    "luz": "#ffffff",
    "fondo": "#a0a0a8"
   },
-  "vision": 9,
-  "oscuridad": 0.05,
+  "vision": 7,
+  "oscuridad": 0.08,
   "descripcion": "Blancura absoluta en dos mundos gemelos donde la gravedad apenas existe. Tus pertenencias desaparecen al entrar. Hay comida de sobra y nada más: la tortura aquí no es el hambre, es el silencio.",
   "cita": "Los que se quedan demasiado acaban convertidos en Insanity. Los que se van, casi.",
   "reglas": [
