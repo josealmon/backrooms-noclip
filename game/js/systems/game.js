@@ -613,6 +613,7 @@
     world.explored = nExp;
     world.light = new Float32Array(W * H);
     world.mapaVersion = (world.mapaVersion || 0) + 1;
+    if (window.Minimap) Minimap.desplazarMarcas(world.level.id, shiftX, shiftY, W, H);
     world._shift3d = { x: shiftX, z: shiftY }; // el render 3D desplaza su cámara sin salto
     recomputeFov();
     recomputeDmap();
