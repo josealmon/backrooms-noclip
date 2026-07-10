@@ -409,6 +409,10 @@
       const hechas = new Set(JSON.parse(localStorage.getItem('mmo-cajas::' + m.semilla) || '[]'));
       for (const pr of w.map.props || [])
         if (pr.contenedor && hechas.has(pr.x + ',' + pr.y)) pr.registrado = true;
+      // ...y los objetos del suelo que ya recogiste: la semilla los regenera
+      // intactos y sin esto se podían re-farmear cruzando de sala ida y vuelta
+      for (const it of w.map.items || [])
+        if (hechas.has('suelo:' + it.x + ',' + it.y)) it.taken = true;
     } catch (e) {}
     w.entities = (m.ents || []).map((e) => ({
       uid: e.uid, id: e.id, def: w.data.entities[e.id],
@@ -523,11 +527,12 @@
     return basicos.concat(Object.keys(w.data.objects).filter((id) => !basicos.includes(id)));
   }
 
-  function guardarCaja(w, pr) {
+  // persiste el botín ya resuelto de esta sala: cajas ('x,y') y suelo ('suelo:x,y')
+  function guardarLoot(w, clave) {
     try {
       const k = 'mmo-cajas::' + (w._semillaSala || '');
       const lista = JSON.parse(localStorage.getItem(k) || '[]');
-      lista.push(pr.x + ',' + pr.y);
+      lista.push(clave);
       localStorage.setItem(k, JSON.stringify(lista.slice(-400)));
     } catch (e) {}
   }
@@ -539,7 +544,7 @@
       Fisica.dist(p.x, p.y, w.player.x, w.player.y) <= 1.2);
     if (!pr) return false;
     pr.registrado = true;
-    guardarCaja(w, pr);
+    guardarLoot(w, pr.x + ',' + pr.y);
     if (window.Sfx) Sfx.play('registrar');
     w.rollDice('Registras el contenedor…', (d) => {
       if (d >= 14) {
@@ -550,6 +555,7 @@
           w.log(`Dado: ${d}. Hay algo útil… pero no te cabe nada más.`, 'event');
         } else {
           w.log(`Dado: ${d}. Encuentras: ${w.data.objects[id].nombre}.`, 'good');
+          try { Game.Profiles.registrarDescubierto('objetos', id); } catch (e) {}
           if (window.Effects) Effects.flash(w.player.x, w.player.y, '#ffe9a0');
           enviar({ t: 'loot', id }); // el server valida cadencia y hueco
         }
@@ -576,9 +582,11 @@
       if (d >= 0.5) continue;
       if ((w.player.inv || []).length >= 6) continue; // sin hueco: se queda
       it.taken = true;
+      guardarLoot(w, 'suelo:' + it.x + ',' + it.y); // que no reaparezca al re-entrar
       w.itemsVersion = (w.itemsVersion || 0) + 1;
       const def = w.data.objects[it.id];
       w.log(`Recoges: ${def ? def.nombre : it.id}.`, 'good');
+      try { Game.Profiles.registrarDescubierto('objetos', it.id); } catch (e) {}
       if (window.Sfx) Sfx.play('recoger');
       enviar({ t: 'loot', id: it.id });
       break; // uno por vez (la cadencia del server manda)
