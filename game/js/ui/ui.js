@@ -913,7 +913,6 @@
         world.busy = false;
     }
   }
-  $('btn-changelog-close').onclick = () => toggleChangelog(false);
   if ($('btn-changelog-close-top')) $('btn-changelog-close-top').onclick = () => toggleChangelog(false);
   $('changelog-panel').onclick = (ev) => {
     if (ev.target === $('changelog-panel')) toggleChangelog(false);
