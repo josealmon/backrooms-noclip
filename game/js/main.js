@@ -5,6 +5,30 @@
   const world = Game.world;
   world.data = window.GAME_DATA;
 
+  // Censo discreto de la portada: una petición pequeña al arrancar y cada 30 s.
+  const census = document.getElementById('backrooms-census');
+  const censusText = document.getElementById('backrooms-census-text');
+  async function actualizarCenso() {
+    const title = document.getElementById('screen-title');
+    if (!census || !censusText || document.hidden || title.style.display === 'none') return;
+    try {
+      const res = await fetch('censo', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const datos = await res.json();
+      const total = Number.isInteger(datos.total) && datos.total >= 0 ? datos.total : 0;
+      censusText.textContent = total === 0
+        ? 'No se detectan errantes al otro lado'
+        : `${total} ${total === 1 ? 'errante vaga' : 'errantes vagan'} ahora por las Backrooms`;
+      census.classList.remove('census-offline');
+    } catch (e) {
+      censusText.textContent = 'Las paredes no devuelven ninguna señal';
+      census.classList.add('census-offline');
+    }
+  }
+  actualizarCenso();
+  setInterval(actualizarCenso, 30000);
+  document.addEventListener('visibilitychange', actualizarCenso);
+
   const canvas = document.getElementById('game-canvas');
   Render.init(canvas);
 

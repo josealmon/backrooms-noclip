@@ -980,6 +980,11 @@ function estado() {
   };
 }
 
+// Censo público mínimo para la portada. No expone salas, niveles ni claves.
+function totalJugadores() {
+  return [...salas.values()].reduce((n, s) => n + s.jugadores.size, 0);
+}
+
 // Observatorio (solo guardián): el detalle que /estado no da — cada jugador
 // con sus barras, inventario, equipo y rechazos del validador. `dicc` traduce
 // ids de objeto a nombre para que el panel no muestre claves crudas.
@@ -1050,4 +1055,4 @@ setInterval(() => {
 
 function todas() { return [...salas.values()]; }
 
-module.exports = { Sala, asignar, tickTodas, estado, observa, chatReciente, todas, SALA_PUBLICA, GRACIA_SALA_VACIA };
+module.exports = { Sala, asignar, tickTodas, estado, totalJugadores, observa, chatReciente, todas, SALA_PUBLICA, GRACIA_SALA_VACIA };

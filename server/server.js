@@ -10,7 +10,7 @@ const path = require('path');
 const { WebSocketServer } = require('ws');
 const P = require('./protocolo');
 const filtro = require('./filtro');
-const { asignar, tickTodas, estado, observa, chatReciente } = require('./sala');
+const { asignar, tickTodas, estado, totalJugadores, observa, chatReciente } = require('./sala');
 const { DATA } = require('./sim/mundo');
 const db = require('./db');
 
@@ -89,6 +89,14 @@ function buscarPorId(id) {
 
 const servidor = http.createServer((req, res) => {
   const rutaUrl = (req.url || '/').split('?')[0];
+  if (rutaUrl === '/censo') {
+    res.writeHead(200, {
+      'content-type': 'application/json',
+      'cache-control': 'no-store',
+    });
+    res.end(JSON.stringify({ total: totalJugadores() }));
+    return;
+  }
   if (rutaUrl === '/estado') {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify(estado()));
