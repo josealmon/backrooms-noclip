@@ -452,7 +452,15 @@ class Sala {
     if (!si) { jug.ofertaEn = null; return; }
     const s = this.salidaCerca(jug, 1.0);
     if (!s || jug.muerto) return;
-    const def = s.ex.def;
+    const defOriginal = s.ex.def;
+    let def = defOriginal;
+    if (defOriginal.destino === '*aleatoria') {
+      const candidatos = Object.keys(DATA.levels).filter((id) => id !== this.nivelId);
+      const destino = candidatos.length ? this.rng.pick(candidatos) : null;
+      // La definición pertenece al mapa compartido: no convertir la puerta en
+      // un destino fijo para quienes la crucen después.
+      def = { ...defOriginal, destino, _destinoResuelto: destino };
+    }
     if ((def._mec === 'romper' || def._mec === 'romper_suelo') && !def._abierta) return;
     if (!DATA.levels[def.destino]) {
       this.enviar(jug.ws, { t: 'aviso', txt: 'Ese camino no lleva a ninguna parte (nivel fuera del piloto).' });
