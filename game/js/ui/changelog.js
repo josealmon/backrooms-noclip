@@ -4,6 +4,11 @@
 // tanda de cambios (junto con VERSION_JUEGO en main.js).
 (function () {
   const CHANGELOG = [
+    { v: 'v30.7', cambios: [
+      'El giro de cámara con el ratón (Pointer Lock) responde 1:1, sin el retardo de goma de antes; y el suavizado del resto de movimientos de cámara ya no depende de tus FPS.',
+      'Nuevo tick en Ajustes: «mostrar FPS en pantalla».',
+      'El modo espectador del guardián rota con ←/→ entre TODOS los errantes de todas las instancias y niveles, y la barra indica en qué nivel está el observado.',
+    ] },
     { v: 'v30.6', cambios: [
       'La web carga MUCHO más rápida: la portada ya no descarga ningún asset del juego (sprites y sonidos llegan al entrar en partida) y desaparecen los cientos de peticiones fallidas que ensuciaban la consola y la red.',
       'La pestaña del navegador estrena favicon propio (la puerta pixel-art).',
