@@ -4,6 +4,12 @@
 // tanda de cambios (junto con VERSION_JUEGO en main.js).
 (function () {
   const CHANGELOG = [
+    { v: 'v30.1', cambios: [
+      'Arreglado de raíz: la música del menú podía seguir sonando dentro de la partida (pasaba sobre todo si tu primer clic al cargar la página era directamente DESPERTAR).',
+    ] },
+    { v: 'v30', cambios: [
+      'El guardián estrena Sala de Control: un mapa en vivo de todos los niveles para los directos, con retos y anuncios. Si notas que alguien te observa… probablemente sea él.',
+    ] },
     { v: 'v28.10', cambios: [
       'La portada ahora muestra cuántos errantes están conectados en este momento. (josealmon)',
       'Arreglado (multijugador): cerrar el códice o el changelog con ESC o su tecla podía dejar la cámara sin responder al clic. (Gartixr)',

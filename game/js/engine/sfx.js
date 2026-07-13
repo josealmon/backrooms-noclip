@@ -653,9 +653,11 @@
       const el = new window.Audio(src);
       el.loop = true;
       el.volume = Math.min(1, 0.62 * vol * volAmb);
-      el.play().then(() => {
-        menuAudioEl = el;
-      }).catch(e => {});
+      // la referencia se guarda SÍNCRONA (antes se asignaba al resolverse
+      // play() — un stopMenu() en esa ventana no encontraba nada que parar
+      // y la pista quedaba sonando huérfana dentro de la partida)
+      menuAudioEl = el;
+      el.play().catch(() => { if (menuAudioEl === el) menuAudioEl = null; });
     } catch (e) {}
   }
 

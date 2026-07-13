@@ -11,6 +11,11 @@
   };
 
   function show(name) {
+    // salir de la pantalla de título apaga SIEMPRE su música, venga por donde
+    // venga el arranque (DESPERTAR, continuar, autostart…) — cinturón además
+    // del stopMenu de conectarAlServidor, que las carreras del primer clic
+    // podían esquivar (v30.1)
+    if (name !== 'title' && window.Sfx) Sfx.stopMenu();
     if (name !== 'end') document.body.classList.remove('smiler-death');
     // el CSS de controles táctiles/aviso de orientación cuelga de estas
     // clases en <body> (game-active, card-active) — sin esto #touch-controls

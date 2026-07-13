@@ -1,7 +1,7 @@
 // Arranque: input, bucle de animación y pantalla de título.
 (function () {
   // versión visible del juego (Ajustes); súbela con cada tanda de cambios
-  window.VERSION_JUEGO = 'v30';
+  window.VERSION_JUEGO = 'v30.1';
   const world = Game.world;
   world.data = window.GAME_DATA;
 
@@ -1664,6 +1664,12 @@
 
   function playMenuMusic() {
     if (document.getElementById('screen-title').style.display === 'none') return;
+    // con la conexión en curso («CRUZANDO LA REALIDAD…») el título sigue
+    // visible, pero arrancar música aquí la dejaría sonando dentro de la
+    // partida: es el caso del PRIMER clic de la sesión directo en DESPERTAR —
+    // el listener {once:true} de desbloqueo de audio burbujea DESPUÉS del
+    // onclick del botón (y de su stopMenu) y reactivaba la pista (v30.1)
+    if (document.getElementById('btn-start').disabled) return;
     let trackId = OPTS.menuMusica || 'menu1';
     const track = CANCIONES_MENU.find(t => t.id === trackId) || CANCIONES_MENU[0];
     if (track && track.archivo && window.Sfx) {
