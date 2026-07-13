@@ -1370,8 +1370,12 @@
     let sid, sflip = false;
     if (CAM_MODO === 'tercera') {
       if (world.online) {
-        // v25: cámara libre — el sprite muestra la cara que toque
-        const rel = ((Math.round(((p.rot || 0) - (-camYaw)) / (Math.PI / 2)) % 4) + 4) % 4;
+        // v25: cámara libre — el sprite muestra la cara que toque.
+        // usa p.rotSprite (última tecla sostenida, main.js) en vez de p.rot
+        // (vector combinado de movimiento real): con dos teclas a la vez
+        // p.rot caía justo en el borde entre dos encuadres y parpadeaba.
+        const rotVisible = p.rotSprite !== undefined ? p.rotSprite : (p.rot || 0);
+        const rel = ((Math.round((rotVisible - (-camYaw)) / (Math.PI / 2)) % 4) + 4) % 4;
         if (rel === 0) sid = 'player_up';
         else if (rel === 2) sid = 'player_down';
         else { sid = 'player_side'; sflip = rel === 3; }

@@ -742,9 +742,21 @@
   // v22: conjunto de teclas de movimiento PULSADAS (keydown/keyup); el vector
   // de input se calcula en cada frame del bucle — movimiento libre y suave
   const teclas = new Set();
-  document.addEventListener('keyup', (ev) => teclas.delete(ev.code));
+  // pila de teclas de movimiento sostenidas SOLO para el paso offline por
+  // turnos (teclado PC): si hay dos direcciones pulsadas a la vez, el
+  // auto-repeat del SO dispara keydown de AMBAS de forma entrelazada y el
+  // sprite/paso alternaba entre las dos sin parar; con esta pila el paso
+  // repetido solo obedece a la última tecla pulsada que sigue sostenida
+  // (no toca el D-pad táctil ni el mando, que no pasan por aquí)
+  const heldOffline = [];
+  document.addEventListener('keyup', (ev) => {
+    teclas.delete(ev.code);
+    const i = heldOffline.indexOf(ev.code);
+    if (i !== -1) heldOffline.splice(i, 1);
+  });
   window.addEventListener('blur', () => {
     teclas.clear();
+    heldOffline.length = 0;
     window.joyDx = 0; window.joyDy = 0;
     if (world.online && window.Net) Net.parar();
   });
@@ -815,8 +827,15 @@
     }
     if (KEYS[ev.code]) {
       ev.preventDefault();
+      if (!ev.repeat) {
+        const i = heldOffline.indexOf(ev.code);
+        if (i !== -1) heldOffline.splice(i, 1);
+        heldOffline.push(ev.code); // la más reciente manda
+      } else if (ev.code !== heldOffline[heldOffline.length - 1]) {
+        return; // otra tecla pulsada después sigue sostenida: ignora este auto-repeat
+      }
       const [sdx, sdy] = KEYS[ev.code]; // dirección de PANTALLA pulsada
-      // el auto-repeat del teclado dispara ráfagas: 
+      // el auto-repeat del teclado dispara ráfagas:
       if (tercera) {
         if (
           ev.repeat &&
@@ -872,6 +891,25 @@
     const ang = Math.round(Math.atan2(y, x) / paso) * paso;
     const r = (v) => Math.round(v * 1000) / 1000;
     return [r(Math.cos(ang)), r(Math.sin(ang))];
+  }
+
+  // última tecla de movimiento del TECLADO que sigue sostenida (Set conserva
+  // el orden de inserción: el último elemento es la más reciente que no se
+  // ha soltado). El SPRITE online (PC) se guía por ella en vez del vector
+  // combinado: con dos direcciones a la vez el vector mezclado caía justo en
+  // el borde entre dos encuadres del sprite y parpadeaba cada frame por
+  // ruido de coma flotante. El movimiento real (Net.setInput/setRot/p.rot)
+  // sigue usando el vector combinado sin tocar — esto es solo visual, y no
+  // afecta al mando ni al joystick táctil (no pasan por `teclas`).
+  function rotaPantalla(x, y) {
+    if (!(use3D && Render3D.rot)) return [x, y];
+    const th = -Render3D.rot * Math.PI / 2;
+    return [Math.cos(th) * x - Math.sin(th) * y, Math.sin(th) * x + Math.cos(th) * y];
+  }
+  function ultimaTeclaMov() {
+    let last = null;
+    for (const c of teclas) last = c;
+    return last;
   }
 
   // (la velocidad de giro online vive en Fisica.GIRO_JUGADOR: cliente y
@@ -1201,6 +1239,7 @@
       p.inputX = sx;
       p.inputY = sy;
       const tercera = use3D && Render3D.modo === 'tercera';
+      const lastCode = ultimaTeclaMov();
       if (tercera) {
         // v25 — estilo Roblox: WASD mueve RELATIVO A LA CÁMARA (adelante/
         // atrás/izquierda/derecha); la cámara solo la mueve el ratón.
@@ -1210,26 +1249,23 @@
         const dx = Lx * -sy + Rx * sx;
         const dy = Lz * -sy + Rz * sx;
         Net.setInput(dx, dy);
-        if (dx || dy) {
-          p.rot = Math.atan2(dx, -dy); // el personaje ENCARA hacia donde anda
-          if (Math.abs(dy) >= Math.abs(dx)) p.dir = dy > 0 ? 'down' : 'up';
-          else { p.dir = 'side'; p.flip = dx < 0; }
-        }
+        if (dx || dy) p.rot = Math.atan2(dx, -dy); // rumbo real (movimiento/ataques): vector combinado
+        // sprite: solo la última tecla sostenida (sin teclado —mando/joystick—, el vector real)
+        const kv = lastCode ? KEYS[lastCode] : [sx, sy];
+        const kdx = Lx * -kv[1] + Rx * kv[0];
+        const kdy = Lz * -kv[1] + Rz * kv[0];
+        if (kdx || kdy) p.rotSprite = Math.atan2(kdx, -kdy);
       } else {
         // 2D / cámara alta: 8 direcciones relativas a la pantalla
-        let dx = sx, dy = sy;
-        if (use3D && Render3D.rot) {
-          const th = -Render3D.rot * Math.PI / 2;
-          const rx2 = Math.cos(th) * sx - Math.sin(th) * sy;
-          const ry2 = Math.sin(th) * sx + Math.cos(th) * sy;
-          dx = rx2; dy = ry2;
-        }
+        const [dx, dy] = rotaPantalla(sx, sy);
         Net.setInput(dx, dy);
-        if (dx || dy) {
-          // el facing sigue al movimiento (sprite 2D + acciones por ángulo)
-          if (Math.abs(dy) >= Math.abs(dx)) p.dir = dy > 0 ? 'down' : 'up';
-          else { p.dir = 'side'; p.flip = dx < 0; }
-          Net.setRot(Math.atan2(dx, -dy));
+        if (dx || dy) Net.setRot(Math.atan2(dx, -dy)); // rumbo real: vector combinado
+        // sprite: solo la última tecla sostenida
+        const kv = lastCode ? KEYS[lastCode] : [sx, sy];
+        const [sdx, sdy] = rotaPantalla(kv[0], kv[1]);
+        if (sdx || sdy) {
+          if (Math.abs(sdy) >= Math.abs(sdx)) p.dir = sdy > 0 ? 'down' : 'up';
+          else { p.dir = 'side'; p.flip = sdx < 0; }
         }
       }
       Net.frame(dtNet); // predicción local con la misma física del servidor
