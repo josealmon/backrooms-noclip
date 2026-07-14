@@ -36,6 +36,12 @@ jobs:
           node game/js/net/otros.test.js
           node server/test-posiciones-carga.js
 
+      - name: Tests de reglas ambientales
+        run: node game/js/systems/rules.test.js
+
+      - name: Tests de la Sala compartida
+        run: node game/js/sim/sala.test.js
+
       - name: Auditoría de Level 0 (100 semillas deterministas)
         run: node pipeline/level0-audit.js
 
